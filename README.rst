@@ -53,6 +53,10 @@ Notebooks:
 
 * LMCFlat_F770W_skysub: Creation and subtraction of a sky/background image.
 
+* Analyze_teakreg_shifts: Analyzes the results of the 1st run of LMCFlat_F560W
+  to determine the astrometric offsets to apply for all of the filters for
+  the different mosaic tiles.
+
 Contributors
 ------------
 Karl Gordon
