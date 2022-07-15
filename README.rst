@@ -57,6 +57,16 @@ Notebooks:
   to determine the astrometric offsets to apply for all of the filters for
   the different mosaic tiles.
 
+Stephan's Quintet (PID: 2732)
+-----------------------------
+
+Early Release Observation.  Example showing the *very experimental*
+column/row pull up/down correction.
+
+* StephanQuintet_F1000W_clean: Mainly cosmetic *very experimental*
+  col/row pull/up/down cleaning on the F1000W images.
+
+
 Contributors
 ------------
 Karl Gordon
