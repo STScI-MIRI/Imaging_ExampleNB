@@ -9,6 +9,7 @@ from astropy.stats import sigma_clipped_stats
 from astropy.convolution import Gaussian1DKernel, convolve
 from astropy.io import fits
 from astropy.wcs import WCS
+
 # from astropy.wcs.utils import proj_plane_pixel_scales
 from regions import Regions
 from astropy.coordinates import SkyCoord
@@ -28,7 +29,6 @@ def column_clean(mfile, exclude_above=None):
     ----------
     mfile : str
         filename with a MIRI rate image (i.e., xxx_rate.fits)
-
     exclude_above : float
         value above which to exclude data from calculating the column median
     """
@@ -62,7 +62,9 @@ def column_clean(mfile, exclude_above=None):
             cimage[cimage > exclude_above] = np.NaN
         # compute the median of each column
         with warnings.catch_warnings():
-            warnings.filterwarnings(action="ignore", message="All-NaN slice encountered")
+            warnings.filterwarnings(
+                action="ignore", message="All-NaN slice encountered"
+            )
             colmeds = np.nanmedian(cimage, axis=0)
         # create a smoothed version to avoid removing large scale structure
         colmeds_smooth = convolve(colmeds - np.nanmedian(colmeds), g)
@@ -105,7 +107,6 @@ def row_clean(mfile, exclude_above=None):
     ----------
     mfile : str
         filename with a MIRI rate image (i.e., xxx_rate.fits)
-
     exclude_above : float
         value above which to exclude data from calculating the column median
     """
@@ -142,7 +143,9 @@ def row_clean(mfile, exclude_above=None):
 
         # compute the median of each column
         with warnings.catch_warnings():
-            warnings.filterwarnings(action="ignore", message="All-NaN slice encountered")
+            warnings.filterwarnings(
+                action="ignore", message="All-NaN slice encountered"
+            )
             rowmeds = np.nanmedian(rimage, axis=1)
         # create a smoothed version to avoid removing large scale structure
         rowmeds_smooth = convolve(rowmeds - np.nanmedian(rowmeds), g)
@@ -185,7 +188,6 @@ def cal_column_clean(mfile, exclude_above=None):
     ----------
     mfile : str
         filename with a MIRI cal image (i.e., xxx_cal.fits)
-
     exclude_above : float
         value above which to exclude data from calculating the column median
     """
@@ -240,7 +242,6 @@ def cal_row_clean(mfile, exclude_above=None):
     ----------
     mfile : str
         filename with a MIRI cal image (i.e., xxx_cal.fits)
-
     exclude_above : float
         value above which to exclude data from calculating the column median
     """
@@ -340,6 +341,11 @@ def fix_rateints_to_rate(mfile):
 
     Issue with averaging the rateints file *and* in removing data with only
     one good measurement
+
+    Parameters
+    ----------
+    mfile : str
+        filename with a MIRI rate image (i.e., xxx_rate.fits)
     """
     # read in the final rate and rateint images
     rifile = mfile.replace("rate", "rateints")
@@ -371,29 +377,44 @@ def fix_rateints_to_rate(mfile):
 def shift_rate_wcs(mfile, shifts):
     """
     Shift the WCS of a rate file by the input shifts in arcsec
+
+    Parameters
+    ----------
+    mfile : str
+       filename with a MIRI rate image (i.e., xxx_rate.fits)
+    shifts : [float, float]
+       V2/V3 shifts in arcsec to apply
     """
     rate = fits.open(mfile)
 
     rate["SCI"].header["V2_REF"] += shifts[0]
     rate["SCI"].header["V3_REF"] += shifts[1]
 
-    rate.writeto(mfile.replace("fixed_rate.fits", "fixed_wcs_rate.fits"), overwrite=True)
+    rate.writeto(
+        mfile.replace("fixed_rate.fits", "fixed_wcs_rate.fits"), overwrite=True
+    )
     rate.close()
 
 
 def shift_cal_wcs(mfile, shifts):
     """
     Shift the WCS of a cal file by the input shifts in arcsec in V2, V3
+
+    Parameters
+    ----------
+    mfile : str
+       filename with a MIRI cal image (i.e., xxx_cal.fits)
+    shifts : [float, float]
+       V2/V3 shifts in arcsec to apply
     """
     image_model = datamodels.open(mfile)
 
     # no rotation or skew
-    matrix = [[1., 0.], [0., 1.]]
+    matrix = [[1.0, 0.0], [0.0, 1.0]]
 
     # create JWST WCS corrector object:
     wcs_corrector = JWSTgWCS(
-        wcs=image_model.meta.wcs,
-        wcsinfo=image_model.meta.wcsinfo.instance
+        wcs=image_model.meta.wcs, wcsinfo=image_model.meta.wcsinfo.instance
     )
     wcs_corrector.set_correction(
         matrix=matrix,
@@ -405,13 +426,28 @@ def shift_cal_wcs(mfile, shifts):
     image_model.write(mfile.replace("_fixed_cal.fits", "_fixed_wcs_cal.fits"))
 
 
-def make_sky(files, scalebkg=False,
-             exclude_above=None, ds9regions=None, exclude_delta=None):
+def make_sky(
+    files, scalebkg=False, exclude_above=None, exclude_delta=None, ds9regions=None
+):
     """
-    Make sky background by stacking in image coordinates
+    Make sky background by sigma clipping in image coordinates and subtract it
+    from all the input files.
+
+    Parameters
+    ----------
+    files : strs
+       Array of cal files to use to create the sky image
+    scalebkg : boolean
+       Scale each image by its median to the average value [default=False]
+    exclude_above : float
+       Exclude data above this value from the sky creation
+    exclude_delta : float
+       Exclude data above the median bkg + this value from sky creation
+    ds9regions : ds9 region file
+       Exclude pixels inside ds9 regions from sky creation
     """
     if ds9regions is not None:
-        ereg = Regions.read(ds9regions, format='ds9')
+        ereg = Regions.read(ds9regions, format="ds9")
         # for creg in ereg:
         #     creg.radius *= 0.5
 
@@ -444,14 +480,14 @@ def make_sky(files, scalebkg=False,
             # cwcs = cdata.meta.wcs.to_fits()
 
             fits_header, fits_hdulist = cdata.meta.wcs.to_fits()
-            cwcs = WCS(fits_header)   # <-- "astropy" wcs
+            cwcs = WCS(fits_header)  # <-- "astropy" wcs
 
             pixx = np.arange(isize[1])
             pixy = np.arange(isize[0])
             imagex, imagey = np.meshgrid(pixx, pixy)
             imagera, imagedec = cwcs.wcs_pix2world(imagex, imagey, 0)
             # imagera, imagedec = cwcs.pixel_to_world(imagex, imagey, 0)
-            skycoord = SkyCoord(imagera, imagedec, unit='deg')
+            skycoord = SkyCoord(imagera, imagedec, unit="deg")
             for creg in ereg:
                 inoutimage = creg.contains(skycoord, cwcs)
                 tdata[inoutimage] = np.NaN
@@ -477,10 +513,9 @@ def make_sky(files, scalebkg=False,
     else:
         print("Not scaling individual images to median bkg")
 
-    skyflat_mean, skyflat_median, skyflat_std = sigma_clipped_stats(istack,
-                                                                    sigma_lower=3,
-                                                                    sigma_upper=1,
-                                                                    axis=2)
+    skyflat_mean, skyflat_median, skyflat_std = sigma_clipped_stats(
+        istack, sigma_lower=3, sigma_upper=1, axis=2
+    )
 
     # subtract the sky properly adjusted from the data
     for k, cfile in enumerate(files):
@@ -488,7 +523,7 @@ def make_sky(files, scalebkg=False,
         cdata.data -= skyflat_mean
         if scalebkg:
             print(cfile, medsky - istackmed[k])
-            cdata.data += (medsky - istackmed[k])
+            cdata.data += medsky - istackmed[k]
         else:
             print(cfile)
         ndata = cdata.data == np.NaN
@@ -499,13 +534,33 @@ def make_sky(files, scalebkg=False,
     return skyflat_mean
 
 
-def get_subregion(pix, region, dsize,
-                  xwidth=60, ywidth=60,
-                  xoffset=20, yoffset=20):
+def get_subregion(pix, region, dsize, xwidth=60, ywidth=60, xoffset=20, yoffset=20):
     """
     Get the subregion for col/row pull up/down work
 
     Note that x,y are swapped from standard display due to python swapping them
+
+    Parameters
+    ----------
+    pix : [float, float]
+       pixel coordinates defining the center of col/row pull up/down
+    region : str
+       region to for which to create subregion [left, right, top, bottom]
+    dsize : [int, int]
+       image size in pixels
+    xwidth : int
+       x size of subregion
+    ywidth : int
+       y size of subregion
+    xoffset : int
+       x offset from pix to start region
+    yoffset : int
+       y offset from pix to start region
+
+    Returns
+    -------
+    subregion : 4 tuple
+       x1, x2, y1, y2 tuple giving the boundaries of the col/row affected region
     """
     if region == "bottom":
         x1 = 10
@@ -531,19 +586,42 @@ def get_subregion(pix, region, dsize,
     return x1, x2, y1, y2
 
 
-def fix_rowcol_pull_updown(cfile, ds9_regfile, cortype=None,
-                           xwidth=60, ywidth=60,
-                           xoffset=20, yoffset=20):
+def fix_rowcol_pull_updown(
+    cfile, ds9_regfile, cortype=None, xwidth=60, ywidth=60, xoffset=20, yoffset=20
+):
     """
     Correct the row/col pull up/down due to bright point sources
+
+    Parameters
+    ----------
+    cfile : str
+       MIRI cal file with col/row issues
+    ds9_regfile : str
+       ds9 region file that gives *point* regions at the peak of the sources
+       causing row/col pull up/down
+    cortype : array of strs
+       on string for each point giving the regions to correct
+       [None, all, topbotright, bottom]
+    xwidth : int
+       x size of subregion
+    ywidth : int
+       y size of subregion
+    xoffset : int
+       x offset from pix to start region
+    yoffset : int
+       y offset from pix to start region
+
+    Returns
+    -------
+    corrected cal datamodel
     """
     cdata = datamodels.open(cfile)
     dsize = cdata.data.shape
     fits_header, fits_hdulist = cdata.meta.wcs.to_fits()
-    cwcs = WCS(fits_header)   # <-- "astropy" wcs
+    cwcs = WCS(fits_header)  # <-- "astropy" wcs
 
     # get the points needing corrections
-    regions = Regions.read(ds9_regfile, format='ds9')
+    regions = Regions.read(ds9_regfile, format="ds9")
 
     for k, creg in enumerate(regions):
         # print(f"correcting row/col pull up/down for source {k+1}")
@@ -553,7 +631,7 @@ def fix_rowcol_pull_updown(cfile, ds9_regfile, cortype=None,
         dsize = cdata.data.shape
 
         # has to be on the main imager
-        if ((pix[0] >= 300) & (pix[0] < dsize[0]) & (pix[1] >= 0) & (pix[1] < dsize[1])):
+        if (pix[0] >= 300) & (pix[0] < dsize[0]) & (pix[1] >= 0) & (pix[1] < dsize[1]):
             print("on image", cfile)
 
             if cortype is None:
@@ -566,18 +644,24 @@ def fix_rowcol_pull_updown(cfile, ds9_regfile, cortype=None,
                 else:
                     fixreg = ["bottom"]
             for creg in fixreg:
-                x1, x2, y1, y2 = get_subregion(pix, creg, dsize,
-                                               xwidth=xwidth, ywidth=ywidth,
-                                               xoffset=xoffset, yoffset=yoffset)
+                x1, x2, y1, y2 = get_subregion(
+                    pix,
+                    creg,
+                    dsize,
+                    xwidth=xwidth,
+                    ywidth=ywidth,
+                    xoffset=xoffset,
+                    yoffset=yoffset,
+                )
 
                 # print(x1, x2, y1, y2)
-                if ((x1 < x2) & (y1 < y2)):
-                    if (pix[0] < 300):
+                if (x1 < x2) & (y1 < y2):
+                    if pix[0] < 300:
                         print(x1, x2, y1, y2)
                         print(pix)
                         print(cfile, "weird region")
                     # print("yes")
-                    subimage = copy.copy(cdata.data[x1: x2, y1: y2])
+                    subimage = copy.copy(cdata.data[x1:x2, y1:y2])
                     if creg in ["bottom", "top"]:
                         caxis = 0
                     else:
@@ -600,7 +684,7 @@ def fix_rowcol_pull_updown(cfile, ds9_regfile, cortype=None,
                     if creg in ["right", "left"]:
                         colimage = np.transpose(colimage)
 
-                    cdata.data[x1: x2, y1: y2] -= colimage
+                    cdata.data[x1:x2, y1:y2] -= colimage
 
     cdata.write(cfile.replace(".fits", "_colrow.fits"))
 
