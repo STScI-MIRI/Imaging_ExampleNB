@@ -427,7 +427,12 @@ def shift_cal_wcs(mfile, shifts):
 
 
 def make_sky(
-    files, scalebkg=False, exclude_above=None, exclude_delta=None, ds9regions=None
+    files,
+    subfiles=None,
+    scalebkg=False,
+    exclude_above=None,
+    exclude_delta=None,
+    ds9regions=None,
 ):
     """
     Make sky background by sigma clipping in image coordinates and subtract it
@@ -518,7 +523,9 @@ def make_sky(
     )
 
     # subtract the sky properly adjusted from the data
-    for k, cfile in enumerate(files):
+    if subfiles is None:
+        subfiles = files
+    for k, cfile in enumerate(subfiles):
         cdata = datamodels.open(cfile)
         cdata.data -= skyflat_mean
         if scalebkg:

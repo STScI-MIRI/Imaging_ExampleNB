@@ -18,6 +18,7 @@ def miri_detector1(
     darksub=True,
     onlyifnorate=False,
     cpufraction="half",
+    after_jump=False,
 ):
     """
     Run CALWEBB_DETECTOR1 pipeline on uncal files.
@@ -71,6 +72,13 @@ def miri_detector1(
             # miri1.jump.save_results = True
             miri1.jump.rejection_threshold = jump_sigma
             miri1.jump.maximum_cores = cpufraction
+
+            if after_jump:
+                miri1.jump.after_jump_flag_dn1 = 10.0
+                miri1.jump.after_jump_flag_time1 = 15 * 2.8
+                miri1.jump.after_jump_flag_dn2 = 1000.0
+                miri1.jump.after_jump_flag_time2 = 1e4 * 2.8
+                # miri1.jump.after_jump_flag_time2 = 0
 
             # Save the linearized ramp
             # miri1.linearity.save_results = True
