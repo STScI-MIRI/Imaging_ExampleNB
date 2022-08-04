@@ -533,7 +533,7 @@ def make_sky(
             cdata.data += medsky - istackmed[k]
         else:
             print(cfile)
-        ndata = cdata.data == np.NaN
+        ndata = np.isnan(cdata.data)
         cdata.data[ndata] = 0.0
         cdata.dq[ndata] = cdata.dq[ndata] & dqflags.pixel["DO_NOT_USE"]
         cdata.write(cfile.replace("_cal.fits", "_skysub_cal.fits"))
