@@ -10,6 +10,7 @@ def miri_detector1(
     output_dir,
     jump_sigma=5.0,
     maskfile=None,
+    reset=True,
     resetfile=None,
     darkfile=None,
     linfile=None,
@@ -53,6 +54,8 @@ def miri_detector1(
             # miri1.saturation.override_saturation = "./RefFiles/MIRIMAGE_SATURATION_09.00.00.fits"
 
             # Use the flight reset anomaly file
+            if not reset:
+                miri1.reset.skip = True
             if resetfile is not None:
                 miri1.reset.override_reset = f"./RefFiles/{resetfile}"
 
