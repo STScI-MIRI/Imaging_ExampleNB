@@ -41,6 +41,8 @@ def miri_detector1(
             miri1.output_dir = output_dir
             miri1.save_results = True
 
+            miri1.ipc.skip = True
+
             # override the mask file
             # miri1.dq_init.override_mask = "./RefFiles/MIRI_MIRIMAGE_MASK_09.00.04.fits"
 
