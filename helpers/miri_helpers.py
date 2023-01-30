@@ -109,8 +109,8 @@ def miri_image2(miri_rate_files, output_dir,
 
 def miri_image3(miri_asn_file, output_dir, minobj=5, snr=5, fwhm=None,
                 crval=None, crpix=None, rotation=None, output_shape=None,
-                align_to_gaia=False, tweakreg=True,
-                matchbkg=True, pixel_scale=0.11,
+                align_to_gaia=False, tweakreg=False,
+                matchbkg=False, pixel_scale=0.11, sourcecat=True,
                 logfile=None):
     """
     Run CALWEBB_IMAGE3 pipeline on asn file.
@@ -155,6 +155,9 @@ def miri_image3(miri_asn_file, output_dir, minobj=5, snr=5, fwhm=None,
         im3_dict["skymatch"] = {"skip": True}
     else:
         im3_dict["skymatch"] = {"lower": 0.0}
+
+    if not sourcecat:
+        im3_dict["source_catalog"] = {"skip": True}
 
     calwebb_image3.Image3Pipeline.call(miri_asn_file,
                                        steps=im3_dict,
