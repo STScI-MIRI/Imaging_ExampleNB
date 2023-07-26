@@ -66,10 +66,18 @@ column/row pull up/down correction.
 * StephanQuintet_F1000W_clean: Mainly cosmetic *very experimental*
   col/row pull/up/down cleaning on the F1000W images.
 
+Pipeline Demo notebook for subtracting a median image
+--------------------------------
+This notebook shows a science workflow of taking uncal images from the pipeline, running them through 
+both level 1 (calwebb_detector1) and 2 (calwebb_image2) pipelines, then creating a median background
+(sky) image and subtracting that from the calibrated images and combining the sky subtracted data
+into a mosaic. The data used is from the SMACS program (PID 2736). This sky creation and 
+subtraction routine works best on data without large extended sources such as galaxies and nebulae.
 
 Contributors
 ------------
 Karl Gordon
+Misty Cracraft
 
 License
 -------
