@@ -16,6 +16,7 @@ def miri_detector1(
     linfile=None,
     save_jump_info=False,
     firstframe=True,
+    bright_use_group1=False,
     darksub=True,
     onlyifnorate=False,
     cpufraction="half",
@@ -30,6 +31,9 @@ def miri_detector1(
     det1_dict["ipc"] = {"skip": True}
     if not firstframe:
         det1_dict["firstframe"] = {"skip": True}
+
+    if bright_use_group1:
+        det1_dict["firstframe"] = {"bright_use_group1": True}
 
     # Use the flight reset anomaly file
     if not reset:
