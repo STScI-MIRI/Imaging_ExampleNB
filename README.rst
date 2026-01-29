@@ -74,10 +74,18 @@ both level 1 (calwebb_detector1) and 2 (calwebb_image2) pipelines, then creating
 into a mosaic. The data used is from the SMACS program (PID 2736). This sky creation and 
 subtraction routine works best on data without large extended sources such as galaxies and nebulae.
 
+Example notebook for masking persistence caused by saturation
+--------------------------------
+This notebook walks through masking persistence that is caused by saturation earlier in the observation, 
+as flagged by SaturationStep.  Pixels are masked in all subsequent exposures to remove artifacts from 
+long time-scale negative persistence. Optionally, the user can also provide a list or fits fill of pixels 
+to mask based on visual inspection.
+
 Contributors
 ------------
 Karl Gordon
 Misty Cracraft
+Stacey Alberts
 
 License
 -------
